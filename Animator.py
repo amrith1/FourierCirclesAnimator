@@ -6,6 +6,9 @@ from tkinter import *
 harmonics = 10
 canvas_width = 1000
 canvas_height = 1000
+phase_multiples = []
+xphase_tracker = []
+yphase_tracker = []
 
 
 def xcoord(x):
@@ -30,9 +33,41 @@ def prodPhasors(xlist, ylist, xphasors, yphasors):
 		y_sin_scalar = ((ytrans[i] - ytrans[-1*i])*1j).real
 		yphasors.append(y_sin_scalar + 1j*y_cos_scalar)
 		
+def createCircles(c, xcircles, ycircles, xphasors, yphasors):
+	prev_xloc = 0
+	prev_yloc = 0
+	
+	for i in range(1, harmonics + 1):
+		radius = abs(xphasors[i])
+		if(i == 1):
+			xcircles.append(c.create_oval(xcoord(0 - radius), ycoord(-3/10 * canvas_height - radius), xcoord(0 + radius), ycoord(-3/10*canvas_height + radius)))
+			prev_xloc = xphasors[i].real
+			prev_yloc = xphasors[i].imag - 3/10 * canvas_height
+		else:
+			xcircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
+			prev_xloc += xphasors[i].real
+			prev_yloc += xphasors[i].imag
 		
+	xcircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0, fill = "green"))
+	
+	prev_xloc = 0
+	prev_yloc = 0
+	for i in range(1, harmonics + 1):
+		radius = abs(yphasors[i])
+		if(i == 1):
+			ycircles.append(c.create_oval(xcoord(-3/10 * canvas_width - radius), ycoord(0 - radius), xcoord(-3/10 * canvas_width + radius), ycoord(0 + radius)))
+			prev_xloc = yphasors[i].real - 3/10 * canvas_width
+			prev_yloc = yphasors[i].imag
+		else:
+			ycircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
+			prev_xloc += yphasors[i].real
+			prev_yloc += yphasors[i].imag
+			
+	ycircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc), fill = "green"))
+	c.pack()
+	
 
-"""	
+"""
 def update_positions(xcircles, ycircles, xphasors, yphasors, phase_change):
 	prev_xloc = 0
 	prev_yloc = 0
@@ -65,49 +100,15 @@ def update_positions(xcircles, ycircles, xphasors, yphasors, phase_change):
 
 
 
-
-
-
-
 def animate (xlist, ylist):
 	xphasors = []
 	yphasors = []
 	prodPhasors(xlist, ylist, xphasors, yphasors)
 	master = Tk()
-	c = Canvas(master, width=canvas_width, height=canvas_height)
+	canvas = Canvas(master, width=canvas_width, height=canvas_height)
 	xcircles = [None]
 	ycircles = [None]
-	prev_xloc = 0
-	prev_yloc = 0
-	
-	for i in range(1, harmonics + 1):
-		radius = abs(xphasors[i])
-		if(i == 1):
-			xcircles.append(c.create_oval(xcoord(0 - radius), ycoord(-3/10 * canvas_height - radius), xcoord(0 + radius), ycoord(-3/10*canvas_height + radius)))
-			prev_xloc = xphasors[i].real
-			prev_yloc = xphasors[i].imag - 3/10 * canvas_height
-		else:
-			xcircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
-			prev_xloc += xphasors[i].real
-			prev_yloc += xphasors[i].imag
-		
-	xcircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0, fill = "green"))
-	
-	prev_xloc = 0
-	prev_yloc = 0
-	for i in range(1, harmonics + 1):
-		radius = abs(yphasors[i])
-		if(i == 1):
-			ycircles.append(c.create_oval(xcoord(-3/10 * canvas_width - radius), ycoord(0 - radius), xcoord(-3/10 * canvas_width + radius), ycoord(0 + radius)))
-			prev_xloc = yphasors[i].real - 3/10 * canvas_width
-			prev_yloc = yphasors[i].imag
-		else:
-			ycircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
-			prev_xloc += yphasors[i].real
-			prev_yloc += yphasors[i].imag
-			
-	ycircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc), fill = "green"))
-	c.pack()
+	createCircles(canvas, xcircles, ycircles, xphasors, yphasors)
 	period = len(xlist)
 	master.mainloop()
 
@@ -118,8 +119,8 @@ while True:
 			phase_change = 2*np.pi/period * phase
 			update_positions(xcircles, ycircles, xphasors, yphasors, phase_change)
 """
-freq = 1
-period = 256.0
+#freq = 1
+#period = 256.0
 x_array = []
 y_array = []
 for x in range(int(period)):
@@ -141,11 +142,6 @@ for y in range(int(period)):
 		y_array.append(32)
 	else:
 		y_array.append(32 - y + 192)
-
-
-#plt.plot(x_array, y_array)
-#plt.show()
-
 
 animate(x_array, y_array)
 
