@@ -66,37 +66,50 @@ def createCircles(c, xcircles, ycircles, xphasors, yphasors):
 	ycircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc), fill = "green"))
 	c.pack()
 	
+def initPhaseMults(period):
+	for i in range(harmonics + 1):
+		phase_multiples.append(np.exp(i*np.pi*2/period))
 
-"""
-def update_positions(xcircles, ycircles, xphasors, yphasors, phase_change):
+def initTrackers(xphasors, yphasors):
+	for i in range(harmonics + 1):
+		xphase_tracker.append(xphasors[i])
+		yphase_tracker.append(yphasors[i])
+
+
+def update_positions(xcircles, ycircles):
+	for i in range(1, harmonics + 1):
+		xphase_tracker[i] *= phase_multiples[i]
+		yphase_tracker[i] *= phase_multiples[i]
 	prev_xloc = 0
 	prev_yloc = 0
 	for i in range(1, harmonics + 1):
 		if(i == 1):
-			xcircles.append(c.create_oval(xcoord(0 - radius), ycoord(-3/10 * canvas_height - radius), xcoord(0 + radius), ycoord(-3/10*canvas_height + radius)))
-			prev_xloc = xphasors[i].real
-			prev_yloc = xphasors[i].imag - 3/10 * canvas_height
+			#xcircles[i].coords(xcoord(0 - radius), ycoord(-3/10 * canvas_height - radius), xcoord(0 + radius), ycoord(-3/10*canvas_height + radius))
+			prev_xloc = xphase_tracker[i].real
+			prev_yloc = xphase_tracker[i].imag - 3/10 * canvas_height
 		else:
-			xcircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
-			prev_xloc += xphasors[i].real
-			prev_yloc += xphasors[i].imag
+			radius = abs(xphase_tracker[i])
+			xcircles[i].coords(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
+			prev_xloc += xphase_tracker[i].real
+			prev_yloc += xphase_tracker[i].imag
 		
-	xcircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0, fill = "green"))
+	xcircles[harmonics + 1].coords(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0)
 	
 	prev_xloc = 0
 	prev_yloc = 0
 	for i in range(1, harmonics + 1):
 		if(i == 1):
-			ycircles.append(c.create_oval(xcoord(-3/10 * canvas_width - radius), ycoord(0 - radius), xcoord(-3/10 * canvas_width + radius), ycoord(0 + radius)))
-			prev_xloc = yphasors[i].real - 3/10 * canvas_width
-			prev_yloc = yphasors[i].imag
+			#ycircles.append(c.create_oval(xcoord(-3/10 * canvas_width - radius), ycoord(0 - radius), xcoord(-3/10 * canvas_width + radius), ycoord(0 + radius)))
+			prev_xloc = yphase_tracker[i].real - 3/10 * canvas_width
+			prev_yloc = yphase_tracker[i].imag
 		else:
-			ycircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
-			prev_xloc += yphasors[i].real
-			prev_yloc += yphasors[i].imag
+			radius = abs(yphase_tracker[i])
+			ycircles[i].coords(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
+			prev_xloc += yphase_tracker[i].real
+			prev_yloc += yphase_tracker[i].imag
 			
-	ycircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc), fill = "green"))
-"""
+	ycircles[harmonics+1].coords(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc))
+
 
 
 
@@ -110,17 +123,20 @@ def animate (xlist, ylist):
 	ycircles = [None]
 	createCircles(canvas, xcircles, ycircles, xphasors, yphasors)
 	period = len(xlist)
-	master.mainloop()
-
-
-"""
-while True:
+	initPhaseMults(period)
+	while True:
+		initTrackers(xphasors, yphasors)
 		for phase in range(period):
-			phase_change = 2*np.pi/period * phase
-			update_positions(xcircles, ycircles, xphasors, yphasors, phase_change)
-"""
+			update_positions(xcircles, ycircles)
+			master.update()
+			time.sleep(0.25)
+
+
+
+
+
 #freq = 1
-#period = 256.0
+period = 256.0
 x_array = []
 y_array = []
 for x in range(int(period)):
