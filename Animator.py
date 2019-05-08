@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 from tkinter import *
 
-harmonics = 10
+harmonics = 15
 canvas_width = 1000
 canvas_height = 1000
 phase_multiples = []
@@ -68,7 +68,7 @@ def createCircles(c, xcircles, ycircles, xphasors, yphasors):
 	
 def initPhaseMults(period):
 	for i in range(harmonics + 1):
-		phase_multiples.append(np.exp(i*np.pi*2/period))
+		phase_multiples.append(np.exp(i*np.pi*2j/period))
 
 def initTrackers(xphasors, yphasors):
 	for i in range(harmonics + 1):
@@ -76,7 +76,7 @@ def initTrackers(xphasors, yphasors):
 		yphase_tracker.append(yphasors[i])
 
 
-def update_positions(xcircles, ycircles):
+def update_positions(canvas, xcircles, ycircles):
 	for i in range(1, harmonics + 1):
 		xphase_tracker[i] *= phase_multiples[i]
 		yphase_tracker[i] *= phase_multiples[i]
@@ -89,11 +89,13 @@ def update_positions(xcircles, ycircles):
 			prev_yloc = xphase_tracker[i].imag - 3/10 * canvas_height
 		else:
 			radius = abs(xphase_tracker[i])
-			xcircles[i].coords(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
+			canvas.coords(xcircles[i], xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
 			prev_xloc += xphase_tracker[i].real
 			prev_yloc += xphase_tracker[i].imag
-		
-	xcircles[harmonics + 1].coords(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0)
+	prev_coords = canvas.coords(xcircles[harmonics + 1])
+	finalX = prev_coords[0]
+	finalNewX = xcoord(prev_xloc)
+	canvas.coords(xcircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0)
 	
 	prev_xloc = 0
 	prev_yloc = 0
@@ -104,11 +106,12 @@ def update_positions(xcircles, ycircles):
 			prev_yloc = yphase_tracker[i].imag
 		else:
 			radius = abs(yphase_tracker[i])
-			ycircles[i].coords(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
+			canvas.coords(ycircles[i], xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius))
 			prev_xloc += yphase_tracker[i].real
 			prev_yloc += yphase_tracker[i].imag
-			
-	ycircles[harmonics+1].coords(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc))
+	prev_coords = canvas.coords(ycircles[harmonics + 1])
+	canvas.create_line(finalX, prev_coords[1], finalNewX, ycoord(prev_yloc))		
+	canvas.coords(ycircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc))
 
 
 
@@ -127,37 +130,37 @@ def animate (xlist, ylist):
 	while True:
 		initTrackers(xphasors, yphasors)
 		for phase in range(period):
-			update_positions(xcircles, ycircles)
+			update_positions(canvas, xcircles, ycircles)
 			master.update()
-			time.sleep(0.25)
+			time.sleep(0.002)
 
 
 
 
 
 #freq = 1
-period = 256.0
+period = 512.0
 x_array = []
 y_array = []
 for x in range(int(period)):
-	if (x < 64):
-		x_array.append(-32 + x)
-	elif (x < 128):
-		x_array.append(32)
-	elif (x < 192):
-		x_array.append(32 - x + 128)
+	if (x < 128):
+		x_array.append(-64 + x)
+	elif (x < 256):
+		x_array.append(64)
+	elif (x < 384):
+		x_array.append(64 - x + 256)
 	else:
-		x_array.append(-32)
+		x_array.append(-64)
 
 for y in range(int(period)):
-	if (y < 64):
-		y_array.append(-32)
-	elif (y < 128):
-		y_array.append(-32 + y -64)
-	elif (y < 192):
-		y_array.append(32)
+	if (y < 128):
+		y_array.append(-64)
+	elif (y < 256):
+		y_array.append(-64 + y -128)
+	elif (y < 384):
+		y_array.append(64)
 	else:
-		y_array.append(32 - y + 192)
+		y_array.append(64 - y + 384)
 
 animate(x_array, y_array)
 
