@@ -2,8 +2,9 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from tkinter import *
+import random
 
-harmonics = 15
+harmonics = 25
 canvas_width = 1000
 canvas_height = 1000
 phase_multiples = []
@@ -76,7 +77,7 @@ def initTrackers(xphasors, yphasors):
 		yphase_tracker.append(yphasors[i])
 
 
-def update_positions(canvas, xcircles, ycircles):
+def update_positions(canvas, xcircles, ycircles, firstpass):
 	for i in range(1, harmonics + 1):
 		xphase_tracker[i] *= phase_multiples[i]
 		yphase_tracker[i] *= phase_multiples[i]
@@ -110,7 +111,8 @@ def update_positions(canvas, xcircles, ycircles):
 			prev_xloc += yphase_tracker[i].real
 			prev_yloc += yphase_tracker[i].imag
 	prev_coords = canvas.coords(ycircles[harmonics + 1])
-	canvas.create_line(finalX, prev_coords[1], finalNewX, ycoord(prev_yloc))		
+	if firstpass:
+		canvas.create_line(finalX, prev_coords[1], finalNewX, ycoord(prev_yloc))		
 	canvas.coords(ycircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc))
 
 
@@ -127,12 +129,14 @@ def animate (xlist, ylist):
 	createCircles(canvas, xcircles, ycircles, xphasors, yphasors)
 	period = len(xlist)
 	initPhaseMults(period)
+	firstpass = True
 	while True:
 		initTrackers(xphasors, yphasors)
 		for phase in range(period):
-			update_positions(canvas, xcircles, ycircles)
+			update_positions(canvas, xcircles, ycircles, firstpass)
 			master.update()
 			time.sleep(0.002)
+		firstpass = False
 
 
 
@@ -142,6 +146,36 @@ def animate (xlist, ylist):
 period = 512.0
 x_array = []
 y_array = []
+xpoint = 0
+ypoint = 0
+x_array.append(xpoint)
+y_array.append(ypoint)
+xmax = 0
+xmin = 0
+ymax = 0
+ymin = 0
+random.seed(345678)
+
+for i in range(int(period/2)):
+	xmax = (300) if (xpoint + 10 > 300) else (xpoint + 10)
+	ymax = (300) if (ypoint + 10 > 300) else (ypoint + 10)
+	xmin = (-300) if (xpoint - 10 < -300) else (xpoint - 10)
+	ymin = (-300) if (ypoint - 10 < -300) else (ypoint - 10)
+	xpoint = random.randint(xmin, xmax + 1)
+	ypoint = random.randint(ymin, ymax + 1)
+	x_array.append(xpoint)
+	y_array.append(ypoint)
+for i in range(int(period/2)):
+	x_array.append(x_array[int(period/2) - i])
+	y_array.append(y_array[int(period/2) - i])
+
+animate(x_array, y_array)
+
+
+
+
+
+"""
 for x in range(int(period)):
 	if (x < 128):
 		x_array.append(-64 + x)
@@ -162,11 +196,7 @@ for y in range(int(period)):
 	else:
 		y_array.append(64 - y + 384)
 
-animate(x_array, y_array)
-
-
-
-
+"""
 
 
 """
