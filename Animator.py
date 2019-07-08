@@ -4,13 +4,12 @@ import matplotlib.pyplot as plt
 from tkinter import *
 import random
 
-harmonics = 25
+harmonics = 15
 canvas_width = 1000
 canvas_height = 1000
 phase_multiples = []
 xphase_tracker = []
 yphase_tracker = []
-
 
 def xcoord(x):
 	return x + canvas_width/2
@@ -21,14 +20,11 @@ def ycoord(y):
 def prodPhasors(xlist, ylist, xphasors, yphasors):
 	period = len(xlist)
 	xtrans = [x/period for x in np.fft.fft(xlist)]
-	ytrans = [y/period for y in np.fft.fft(ylist)]
-	
-	
+	ytrans = [y/period for y in np.fft.fft(ylist)]	
 	for i in range(harmonics + 1):
 		x_cos_scalar = (xtrans[i] + xtrans[-1*i]).real
 		x_sin_scalar = ((xtrans[i] - xtrans[-1*i])*1j).real
 		xphasors.append(x_cos_scalar + -1j*x_sin_scalar)
-	
 	for i in range(harmonics + 1):
 		y_cos_scalar = (ytrans[i] + ytrans[-1*i]).real
 		y_sin_scalar = ((ytrans[i] - ytrans[-1*i])*1j).real
@@ -37,7 +33,6 @@ def prodPhasors(xlist, ylist, xphasors, yphasors):
 def createCircles(c, xcircles, ycircles, xphasors, yphasors):
 	prev_xloc = 0
 	prev_yloc = 0
-	
 	for i in range(1, harmonics + 1):
 		radius = abs(xphasors[i])
 		if(i == 1):
@@ -48,9 +43,7 @@ def createCircles(c, xcircles, ycircles, xphasors, yphasors):
 			xcircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
 			prev_xloc += xphasors[i].real
 			prev_yloc += xphasors[i].imag
-		
 	xcircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0, fill = "green"))
-	
 	prev_xloc = 0
 	prev_yloc = 0
 	for i in range(1, harmonics + 1):
@@ -63,7 +56,6 @@ def createCircles(c, xcircles, ycircles, xphasors, yphasors):
 			ycircles.append(c.create_oval(xcoord(prev_xloc - radius), ycoord(prev_yloc - radius), xcoord(prev_xloc + radius), ycoord(prev_yloc + radius)))
 			prev_xloc += yphasors[i].real
 			prev_yloc += yphasors[i].imag
-			
 	ycircles.append(c.create_line(xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc), fill = "green"))
 	c.pack()
 	
@@ -75,7 +67,6 @@ def initTrackers(xphasors, yphasors):
 	for i in range(harmonics + 1):
 		xphase_tracker.append(xphasors[i])
 		yphase_tracker.append(yphasors[i])
-
 
 def update_positions(canvas, xcircles, ycircles, firstpass):
 	for i in range(1, harmonics + 1):
@@ -96,8 +87,7 @@ def update_positions(canvas, xcircles, ycircles, firstpass):
 	prev_coords = canvas.coords(xcircles[harmonics + 1])
 	finalX = prev_coords[0]
 	finalNewX = xcoord(prev_xloc)
-	canvas.coords(xcircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0)
-	
+	canvas.coords(xcircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), xcoord(prev_xloc), 0)	
 	prev_xloc = 0
 	prev_yloc = 0
 	for i in range(1, harmonics + 1):
@@ -114,9 +104,6 @@ def update_positions(canvas, xcircles, ycircles, firstpass):
 	if firstpass:
 		canvas.create_line(finalX, prev_coords[1], finalNewX, ycoord(prev_yloc))		
 	canvas.coords(ycircles[harmonics + 1], xcoord(prev_xloc), ycoord(prev_yloc), canvas_width, ycoord(prev_yloc))
-
-
-
 
 def animate (xlist, ylist):
 	xphasors = []
@@ -142,61 +129,78 @@ def animate (xlist, ylist):
 
 
 
-#freq = 1
 period = 512.0
 x_array = []
 y_array = []
-xpoint = 0
-ypoint = 0
-x_array.append(xpoint)
-y_array.append(ypoint)
-xmax = 0
-xmin = 0
-ymax = 0
-ymin = 0
-random.seed(345678)
 
-for i in range(int(period/2)):
-	xmax = (300) if (xpoint + 10 > 300) else (xpoint + 10)
-	ymax = (300) if (ypoint + 10 > 300) else (ypoint + 10)
-	xmin = (-300) if (xpoint - 10 < -300) else (xpoint - 10)
-	ymin = (-300) if (ypoint - 10 < -300) else (ypoint - 10)
-	xpoint = random.randint(xmin, xmax + 1)
-	ypoint = random.randint(ymin, ymax + 1)
+type = ""
+seed = 0
+if(len(sys.argv) < 2):
+	print("Illegal Arguments")
+	exit()
+else: 
+	type = sys.argv[1][1:len(sys.argv[1])]
+	if(type == "random"):
+		seed = int(sys.argv[2])
+		
+
+if(type == "random"):
+	xpoint = 0
+	ypoint = 0
 	x_array.append(xpoint)
 	y_array.append(ypoint)
-for i in range(int(period/2)):
-	x_array.append(x_array[int(period/2) - i])
-	y_array.append(y_array[int(period/2) - i])
+	xmax = 0
+	xmin = 0
+	ymax = 0
+	ymin = 0
+	random.seed(seed)
+	for i in range(int(period/2)):
+		xmax = (300) if (xpoint + 10 > 300) else (xpoint + 10)
+		ymax = (300) if (ypoint + 10 > 300) else (ypoint + 10)
+		xmin = (-300) if (xpoint - 10 < -300) else (xpoint - 10)
+		ymin = (-300) if (ypoint - 10 < -300) else (ypoint - 10)
+		xpoint = random.randint(xmin, xmax + 1)
+		ypoint = random.randint(ymin, ymax + 1)
+		x_array.append(xpoint)
+		y_array.append(ypoint)
+	for i in range(int(period/2)):
+		x_array.append(x_array[int(period/2) - i])
+		y_array.append(y_array[int(period/2) - i])
+
+
+
+
+
+
+if(type == "square"):
+	for x in range(int(period)):
+		if (x < 128):
+			x_array.append(-64 + x)
+		elif (x < 256):
+			x_array.append(64)
+		elif (x < 384):
+			x_array.append(64 - x + 256)
+		else:
+			x_array.append(-64)
+
+	for y in range(int(period)):
+		if (y < 128):
+			y_array.append(-64)
+		elif (y < 256):
+			y_array.append(-64 + y -128)
+		elif (y < 384):
+			y_array.append(64)
+		else:
+			y_array.append(64 - y + 384)
+
+
+
 
 animate(x_array, y_array)
 
 
 
 
-
-"""
-for x in range(int(period)):
-	if (x < 128):
-		x_array.append(-64 + x)
-	elif (x < 256):
-		x_array.append(64)
-	elif (x < 384):
-		x_array.append(64 - x + 256)
-	else:
-		x_array.append(-64)
-
-for y in range(int(period)):
-	if (y < 128):
-		y_array.append(-64)
-	elif (y < 256):
-		y_array.append(-64 + y -128)
-	elif (y < 384):
-		y_array.append(64)
-	else:
-		y_array.append(64 - y + 384)
-
-"""
 
 
 """
@@ -244,3 +248,5 @@ for x in range(int(period)):
 #plt.plot(range(64), original)
 #plt.show()
 """
+
+
